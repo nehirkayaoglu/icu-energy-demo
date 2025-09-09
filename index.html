@@ -1,0 +1,105 @@
+<!doctype html>
+<html lang="tr">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ICU Enerji Önceliklendirme (Demo)</title>
+<style>
+  body{font-family:system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;margin:0;background:#0b1020;color:#e8eefc}
+  header{padding:20px 24px;border-bottom:1px solid #1e2a56;background:#0e1530}
+  h1{margin:0;font-size:20px}
+  .wrap{max-width:980px;margin:24px auto;padding:0 16px}
+  .card{background:#11193b;border:1px solid #23306a;border-radius:12px;padding:16px 18px;margin:16px 0}
+  .row{display:flex;gap:12px;flex-wrap:wrap}
+  .col{flex:1 1 260px}
+  .kpi{background:#0f1a3a;border:1px solid #2a3b7e;border-radius:10px;padding:14px}
+  .kpi h3{margin:0 0 6px 0;font-size:13px;color:#9fb4ff;font-weight:600;letter-spacing:.2px}
+  .kpi .v{font-size:22px;font-weight:700}
+  input[type=range]{width:100%}
+  .badge{display:inline-block;padding:6px 10px;border-radius:999px;font-size:12px;font-weight:700}
+  .ok{background:#143c2b;border:1px solid #2f8a5b;color:#baf3d2}
+  .warn{background:#432016;border:1px solid #b6593f;color:#ffd3c9}
+  .btn{background:#2a3b7e;border:1px solid #3e57bc;padding:10px 14px;border-radius:10px;color:#e8eefc;font-weight:700;cursor:pointer}
+  .btn:active{transform:scale(.99)}
+  .muted{color:#9fb4ff}
+  .footer{opacity:.6;font-size:12px;margin-top:8px}
+</style>
+</head>
+<body>
+  <header>
+    <h1>ICU Enerji Önceliklendirme – Karar Destek (FAKE DEMO)</h1>
+  </header>
+
+  <div class="wrap">
+    <div class="card">
+      <p class="muted">Bu sayfa, yalnızca sunum amaçlı sahte bir arayüzdür. HR değerine göre <b>öncelik</b> ve <b>aksiyon</b> mesajı üretir.</p>
+      <div class="row">
+        <div class="col kpi">
+          <h3>Anlık HR (bpm)</h3>
+          <div class="v" id="hrv">75</div>
+          <input id="hr" type="range" min="40" max="160" value="75" />
+        </div>
+        <div class="col kpi">
+          <h3>Model Çıktısı</h3>
+          <div class="v"><span id="cls" class="badge ok">low_priority</span></div>
+          <div class="footer" id="conf">Güven: %86</div>
+        </div>
+        <div class="col kpi">
+          <h3>Önerilen Aksiyon</h3>
+          <div class="v" id="act">Giyilebilir cihaz takın (Düşük enerji modu)</div>
+        </div>
+      </div>
+      <div style="margin-top:14px" class="row">
+        <button class="btn" onclick="simulate()">10 sn simülasyon</button>
+        <div class="footer">Not: Bu simülasyon gerçek model değildir; kural tabanlıdır.</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <h3 style="margin:0 0 8px 0">Mantık (sunum için basit kural)</h3>
+      <ul>
+        <li>HR &lt; 95 → <span class="badge ok">low_priority</span> → <b>Giyilebilir cihaz takın</b> (düşük enerji modu)</li>
+        <li>HR ≥ 95 → <span class="badge warn">high_priority</span> → <b>Enerjiyi kritik cihazlara yönlendirin</b> (giyilebilirleri kapatın)</li>
+      </ul>
+      <p class="footer">Gerçek projede bu kısım Edge Impulse modeliyle değiştirilecek.</p>
+    </div>
+  </div>
+
+<script>
+const hr = document.getElementById('hr');
+const hrv = document.getElementById('hrv');
+const cls = document.getElementById('cls');
+const conf = document.getElementById('conf');
+const act = document.getElementById('act');
+
+function update(v){
+  hrv.textContent = v;
+  const isHigh = Number(v) >= 95;
+  if(isHigh){
+    cls.textContent = 'high_priority';
+    cls.className = 'badge warn';
+    act.textContent = 'Enerjiyi kritik cihazlara yönlendirin (giyilebilirleri kapatın)';
+    conf.textContent = 'Güven: %82';
+  } else {
+    cls.textContent = 'low_priority';
+    cls.className = 'badge ok';
+    act.textContent = 'Giyilebilir cihaz takın (Düşük enerji modu)';
+    conf.textContent = 'Güven: %86';
+  }
+}
+hr.addEventListener('input', e => update(e.target.value));
+update(hr.value);
+
+function simulate(){
+  let t=0;
+  const int=setInterval(()=>{
+    const v = 70 + Math.round(20*Math.sin(t/4)) + Math.round(10*Math.random());
+    hr.value = Math.max(40, Math.min(160, v));
+    update(hr.value);
+    t++;
+    if(t>10){ clearInterval(int); }
+  }, 800);
+}
+</script>
+</body>
+</html>
